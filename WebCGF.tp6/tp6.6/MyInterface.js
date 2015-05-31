@@ -30,25 +30,32 @@ MyInterface.prototype.init = function(application) {
 	// the identifier 'doSomething' must be a function declared as part of that object (i.e. a member of the scene class)
 	// e.g. LightingScene.prototype.doSomething = function () { console.log("Doing something..."); }; 
 
-	this.gui.add(this.scene, 'doSomething');
+	//this.gui.add(this.scene, 'doSomething');
+
+	this.gui.add(this.scene, 'Relogio');	
 
 	// add a group of controls (and open/expand by defult)
 	
-	var group=this.gui.addFolder("Options");
+	var group=this.gui.addFolder("Luzes");
 	group.open();
 
 	// add two check boxes to the group. The identifiers must be members variables of the scene initialized in scene.init as boolean
 	// e.g. this.option1=true; this.option2=false;
 	
-	group.add(this.scene, 'option1');
-	group.add(this.scene, 'option2');
+	group.add(this.scene, 'Luz1');
+	group.add(this.scene, 'Luz2');
+	group.add(this.scene, 'Luz3');
+
+		
+	this.gui.add(this.scene, 'currRobotAppearance', this.scene.robotAppearanceList);
+
 
 	// add a slider
 	// must be a numeric variable of the scene, initialized in scene.init e.g.
 	// this.speed=3;
 	// min and max values can be specified as parameters
 	
-	this.gui.add(this.scene, 'speed', -5, 5);
+	//this.gui.add(this.scene, 'speed', -5, 5);
 
 	return true;
 };
@@ -61,6 +68,45 @@ MyInterface.prototype.processKeyboard = function(event) {
 	// call CGFinterface default code (omit if you want to override)
 	//CGFinterface.prototype.processKeyboard.call(this,event);
 	
+	//console.log(event.keyCode);
+	// Check key codes e.g. here: http://www.asciitable.com/
+	// or use String.fromCharCode(event.keyCode) to compare chars
+	
+	// for better cross-browser support, you may also check suggestions on using event.which in http://www.w3schools.com/jsref/event_key_keycode.asp
+	switch (event.keyCode)
+	{
+		case 'A'.charCodeAt(0):
+		case 'a'.charCodeAt(0):
+			this.scene.robot.rotate(5);
+			break;
+		case 'D'.charCodeAt(0):
+		case 'd'.charCodeAt(0):
+			this.scene.robot.rotate(-5);
+			break;
+		case 'W'.charCodeAt(0):
+		case 'w'.charCodeAt(0):
+			this.scene.robot.move(0.3);
+			break;
+		case 'S'.charCodeAt(0):
+		case 's'.charCodeAt(0):
+			this.scene.robot.move(-0.3);
+			break;
+		case 'H'.charCodeAt(0):
+		case 'h'.charCodeAt(0):
+			this.scene.robot.wave();
+			break;
+	};
+};
+
+/**
+ * processKeyDown
+ * @param event {Event}
+ */
+MyInterface.prototype.processKeyDown = function(event) {
+	// call CGFinterface default code (omit if you want to override)
+	CGFinterface.prototype.processKeyDown.call(this,event);
+	
+	console.log("here");
 	// Check key codes e.g. here: http://www.asciitable.com/
 	// or use String.fromCharCode(event.keyCode) to compare chars
 	
@@ -87,4 +133,3 @@ MyInterface.prototype.processKeyboard = function(event) {
 		
 	};
 };
-

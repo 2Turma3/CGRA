@@ -43,7 +43,6 @@ LightingScene.prototype.init = function(application) {
 
 	this.column = new MyClosedCilinder(this, 50,50, 0,3,0,3, new CGFappearance(this), columnAppearance);
 	this.clock = new MyClock(this);
-	this.robot = new MyRobot(this);
 	this.lamp = new MyLamp(this, 50, 50);
 
 	// Materials
@@ -91,9 +90,23 @@ LightingScene.prototype.init = function(application) {
 
 	this.setUpdatePeriod(100);
 
-	this.option1 = true;
-	this.option2 = false;
-	this.speed = 3;
+	this.Relogio = true;
+
+	this.Luz1 = true;
+	this.Luz2 = true;
+	this.Luz3 = true;
+
+	this.robotAppearanceList =	['SuitSkeleton', 'Goku', 'PBear'];
+	this.currRobotAppearance = this.robotAppearanceList[0];
+	
+	this.robotAppearances = [];
+	for (i = 0; i < this.robotAppearanceList.length; ++i)
+		this.robotAppearances.push(new MyRobotAppearance(this, this.robotAppearanceList[i]));
+
+	this.robot = new MyRobot(this, this.robotAppearances[0]);
+
+	this.lastCurrTime = -1;
+	this.relTime = 0;
 };
 
 LightingScene.prototype.initCameras = function() {
@@ -129,8 +142,17 @@ LightingScene.prototype.initLights = function() {
 };
 
 LightingScene.prototype.updateLights = function() {
-	for (i = 0; i < this.lights.length; i++)
+	this.lightsState = [];
+	this.lightsState[0] = this.Luz1;
+	this.lightsState[1] = this.Luz2;
+	this.lightsState[2] = this.Luz3;
+	for (i = 0; i < this.lights.length; i++){
+		if (this.lightsState[i])
+			this.lights[i].enable();
+		else
+			this.lights[i].disable();
 		this.lights[i].update();
+	}
 }
 
 
@@ -152,6 +174,8 @@ LightingScene.prototype.display = function() {
 
 	// Update all lights used
 	this.updateLights();
+
+	this.updateRobot();
 
 	// Draw axis
 	this.axis.display();
@@ -200,13 +224,13 @@ LightingScene.prototype.display = function() {
 	// First Table
 	this.pushMatrix();
 		this.translate(5, 0, 8);
-		this.table.display();
+		//this.table.display();
 	this.popMatrix();
 
 	// Second Table
 	this.pushMatrix();
 		this.translate(12, 0, 8);
-		this.table.display();
+		//this.table.display();
 	this.popMatrix();
 
 	// Board A
@@ -232,7 +256,7 @@ LightingScene.prototype.display = function() {
 		this.translate(6,0,13)
 		this.rotate(-90 * degToRad,1,0,0);
 		this.scale(1,1,8);
-		this.column.display();
+		//this.column.display();
 	this.popMatrix();
 
 	//Clock
@@ -258,9 +282,24 @@ LightingScene.prototype.display = function() {
 
 
 LightingScene.prototype.update = function(currTime) {
-	this.clock.update(currTime);
+	this.robot.update(currTime);
+	
+	if (this.lastCurrTime === -1)
+  	{
+  	  this.lastCurrTime = currTime;
+  	  this.relTime = 0;
+  	  return;
+  	}
+
+	if (this.Relogio) {
+	   	this.relTime += (currTime - this.lastCurrTime);  
+		this.clock.update(this.relTime);
+	}
+
+	this.lastCurrTime = currTime;
 };
 
-LightingScene.prototype.doSomething = function() {
-	console.log("Doing something...");
+
+LightingScene.prototype.updateRobot = function() {
+	this.robot.setAppearance(this.robotAppearances[this.robotAppearanceList.indexOf(this.currRobotAppearance)]);
 };

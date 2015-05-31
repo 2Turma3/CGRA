@@ -91,9 +91,14 @@ LightingScene.prototype.init = function(application) {
 
 	this.setUpdatePeriod(100);
 
-	this.option1 = true;
-	this.option2 = false;
-	this.speed = 3;
+	this.Relogio = true;
+
+	this.Luz1 = true;
+	this.Luz2 = true;
+	this.Luz3 = true;
+
+	this.lastCurrTime = -1;
+	this.relTime = 0;
 };
 
 LightingScene.prototype.initCameras = function() {
@@ -129,8 +134,17 @@ LightingScene.prototype.initLights = function() {
 };
 
 LightingScene.prototype.updateLights = function() {
-	for (i = 0; i < this.lights.length; i++)
+	this.lightsState = [];
+	this.lightsState[0] = this.Luz1;
+	this.lightsState[1] = this.Luz2;
+	this.lightsState[2] = this.Luz3;
+	for (i = 0; i < this.lights.length; i++){
+		if (this.lightsState[i])
+			this.lights[i].enable();
+		else
+			this.lights[i].disable();
 		this.lights[i].update();
+	}
 }
 
 
@@ -258,9 +272,23 @@ LightingScene.prototype.display = function() {
 
 
 LightingScene.prototype.update = function(currTime) {
-	this.clock.update(currTime);
+	if (this.lastCurrTime === -1)
+  	{
+  	  this.lastCurrTime = currTime;
+  	  this.relTime = 0;
+  	  return;
+  	}
+
+	if (this.Relogio) {
+	   	this.relTime += (currTime - this.lastCurrTime);  
+		this.clock.update(this.relTime);
+	}
+
+	this.lastCurrTime = currTime;
 };
 
+/*
 LightingScene.prototype.doSomething = function() {
 	console.log("Doing something...");
 };
+*/

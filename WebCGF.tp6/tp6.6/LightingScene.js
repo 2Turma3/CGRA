@@ -31,11 +31,14 @@ LightingScene.prototype.init = function(application) {
 	// Scene elements
 	this.table = new MyTable(this);
 	this.wall = new Plane(this);
-	this.leftWall = new MyQuad(this, -0.5, 1.5, -0.5, 1.5);
+	//this.leftWall = new MyQuad(this, -0.5, 1.5, -0.5, 1.5);
 	this.floor = new MyQuad(this, 0, 10, 0,12);
 	this.boardA = new Plane(this, BOARD_A_DIVISIONS, (BOARD_HEIGHT - BOARD_WIDTH)/(2*BOARD_HEIGHT),  (BOARD_WIDTH+BOARD_HEIGHT)/(2*BOARD_HEIGHT), 0,1 );
 	this.boardB = new Plane(this, BOARD_B_DIVISIONS);
+	this.view = new Plane(this, 100);
 
+	this.viewHeight = 15;
+	this.viewWidth = this.viewHeight * 16/9;
 
 	var columnAppearance = new CGFappearance(this);
 	columnAppearance.loadTexture("../resources/images/column.jpg");
@@ -43,7 +46,6 @@ LightingScene.prototype.init = function(application) {
 
 	this.column = new MyClosedCilinder(this, 50,50, 0,3,0,3, new CGFappearance(this), columnAppearance);
 	this.clock = new MyClock(this);
-	this.robot = new MyRobot(this);
 	this.lamp = new MyLamp(this, 50, 50);
 
 	// Materials
@@ -89,11 +91,30 @@ LightingScene.prototype.init = function(application) {
 	this.boardAppearance.setShininess(100);
 	this.boardAppearance.loadTexture("../resources/images/board.png");
 
+	this.viewAppearance = new CGFappearance(this);
+	this.viewAppearance.loadTexture("../resources/images/view.png");
+
+	this.leftWall = new MyWindowedWall(this, this.windowAppearance, 0.25, 0.3, 0.5, 0.4, 0.27, 0.32, 0.46, 0.36);
+
 	this.setUpdatePeriod(100);
 
-	this.option1 = true;
-	this.option2 = false;
-	this.speed = 3;
+	this.Relogio = true;
+
+	this.Luz1 = true;
+	this.Luz2 = true;
+	this.Luz3 = true;
+
+	this.robotAppearanceList =	['SuitSkeleton', 'Goku', 'PBear'];
+	this.currRobotAppearance = this.robotAppearanceList[0];
+	
+	this.robotAppearances = [];
+	for (i = 0; i < this.robotAppearanceList.length; ++i)
+		this.robotAppearances.push(new MyRobotAppearance(this, this.robotAppearanceList[i]));
+
+	this.robot = new MyRobot(this, this.robotAppearances[0]);
+
+	this.lastCurrTime = -1;
+	this.relTime = 0;
 };
 
 LightingScene.prototype.initCameras = function() {
@@ -129,8 +150,17 @@ LightingScene.prototype.initLights = function() {
 };
 
 LightingScene.prototype.updateLights = function() {
-	for (i = 0; i < this.lights.length; i++)
+	this.lightsState = [];
+	this.lightsState[0] = this.Luz1;
+	this.lightsState[1] = this.Luz2;
+	this.lightsState[2] = this.Luz3;
+	for (i = 0; i < this.lights.length; i++){
+		if (this.lightsState[i])
+			this.lights[i].enable();
+		else
+			this.lights[i].disable();
 		this.lights[i].update();
+	}
 }
 
 
@@ -152,6 +182,8 @@ LightingScene.prototype.display = function() {
 
 	// Update all lights used
 	this.updateLights();
+
+	this.updateRobot();
 
 	// Draw axis
 	this.axis.display();
@@ -199,7 +231,7 @@ LightingScene.prototype.display = function() {
 
 	// First Table
 	this.pushMatrix();
-		this.translate(5, 0, 8);
+		this.translate(4, 0, 8);
 		this.table.display();
 	this.popMatrix();
 
@@ -229,7 +261,7 @@ LightingScene.prototype.display = function() {
 
 	// Column
 	this.pushMatrix();
-		this.translate(6,0,13)
+		this.translate(1,0,13)
 		this.rotate(-90 * degToRad,1,0,0);
 		this.scale(1,1,8);
 		this.column.display();
@@ -243,12 +275,20 @@ LightingScene.prototype.display = function() {
 	this.clock.display();
 	this.popMatrix();
 
-
 	// Robot
 	this.pushMatrix();
-	this.translate(8.5, 0, 5);
+	this.translate(7.5, 0, 7.5);
 	this.rotate(-3/4 * Math.PI, 0, 1, 0);
 	this.robot.display();
+	this.popMatrix();
+
+	//View
+	this.viewAppearance.apply();
+	this.pushMatrix();
+		this.translate(-7.5, 4 + 2, 7.5);
+		this.rotate(Math.PI/2, 0,1,0);
+		this.scale(this.viewWidth, this.viewHeight, 1);
+		this.view.display();
 	this.popMatrix();
 
 	// ---- END Primitive drawing section
@@ -258,9 +298,24 @@ LightingScene.prototype.display = function() {
 
 
 LightingScene.prototype.update = function(currTime) {
-	this.clock.update(currTime);
+	this.robot.update(currTime);
+	
+	if (this.lastCurrTime === -1)
+  	{
+  	  this.lastCurrTime = currTime;
+  	  this.relTime = 0;
+  	  return;
+  	}
+
+	if (this.Relogio) {
+	   	this.relTime += (currTime - this.lastCurrTime);  
+		this.clock.update(this.relTime);
+	}
+
+	this.lastCurrTime = currTime;
 };
 
-LightingScene.prototype.doSomething = function() {
-	console.log("Doing something...");
+
+LightingScene.prototype.updateRobot = function() {
+	this.robot.setAppearance(this.robotAppearances[this.robotAppearanceList.indexOf(this.currRobotAppearance)]);
 };
